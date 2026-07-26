@@ -1,0 +1,70 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f5f5f5; color: #333; }
+
+.app-layout { min-height: 100vh; display: flex; flex-direction: column; }
+.app-content { flex: 1; }
+
+.page { padding: 20px; max-width: 900px; margin: 0 auto; }
+.page h2 { font-size: 20px; margin-bottom: 16px; color: #1a1a6c; }
+.page h3 { font-size: 16px; margin: 20px 0 10px; color: #444; }
+
+/* Login */
+.login-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #1a1a6c, #2d2d8a); }
+.login-card { background: #fff; padding: 40px; border-radius: 12px; width: 360px; text-align: center; }
+.login-card h1 { color: #1a1a6c; font-size: 28px; }
+.login-subtitle { color: #666; margin-bottom: 24px; }
+.login-card input, .login-card select { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
+.login-card button { width: 100%; padding: 12px; background: #1a1a6c; color: #fff; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; }
+.login-card button:disabled { opacity: 0.6; }
+.login-error { color: #d32f2f; font-size: 13px; margin-bottom: 8px; }
+
+/* Forms */
+.pay-form input, .pay-form select, .pay-form textarea { width: 100%; padding: 10px; margin-bottom: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
+.pay-form button { width: 100%; padding: 12px; background: #1a1a6c; color: #fff; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; }
+.pay-form button:disabled { opacity: 0.6; }
+.form-msg { margin-top: 12px; padding: 10px; background: #e8f5e9; border-radius: 6px; text-align: center; }
+
+/* KPIs */
+.kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+.kpi-card { background: #fff; border-radius: 10px; padding: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+.kpi-value { display: block; font-size: 22px; font-weight: 700; color: #1a1a6c; }
+.kpi-label { display: block; font-size: 12px; color: #888; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* Method breakdown */
+.method-breakdown { background: #fff; border-radius: 10px; padding: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+.method-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
+.method-row:last-child { border-bottom: none; }
+.method-name { font-weight: 500; }
+.method-count { color: #888; }
+.method-amount { font-weight: 600; color: #1a1a6c; }
+
+/* Recent list */
+.recent-list { background: #fff; border-radius: 10px; padding: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+.recent-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
+.recent-row:last-child { border-bottom: none; }
+.recent-student { font-weight: 500; }
+.recent-amount { font-weight: 600; }
+.recent-method { color: #888; }
+
+/* Filters */
+.filters { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.filters select, .filters input { padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+
+/* Table */
+.table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+.table th { background: #1a1a6c; color: #fff; padding: 10px 8px; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+.table td { padding: 8px; border-bottom: 1px solid #f0f0f0; font-size: 13px; }
+.table tfoot td { font-weight: 600; background: #f9f9f9; }
+.table tr.reversed { opacity: 0.5; text-decoration: line-through; }
+
+/* Pagination */
+.pagination { display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 16px; }
+.pagination button { padding: 6px 16px; border: 1px solid #ddd; border-radius: 6px; cursor: pointer; background: #fff; }
+.pagination button:disabled { opacity: 0.4; cursor: default; }
+
+/* Statement */
+.statement-summary { margin-top: 16px; padding: 16px; background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); text-align: center; font-size: 16px; }
+
+/* Small button */
+.btn-small { padding: 4px 10px; font-size: 12px; border: none; border-radius: 4px; cursor: pointer; }
+.btn-danger { background: #d32f2f; color: #fff; }
