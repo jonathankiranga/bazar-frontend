@@ -7,6 +7,7 @@ import StudentBalancesPage from './pages/StudentBalancesPage';
 import PaymentsPage from './pages/PaymentsPage';
 import AccountStatementPage from './pages/AccountStatementPage';
 import ReportPage from './pages/ReportPage';
+import ParentSubscriptionsPage from './pages/ParentSubscriptionsPage';
 import BottomNav from './components/BottomNav';
 import './App.css';
 
@@ -46,6 +47,7 @@ export default function App() {
             <Route path="/payments" element={<PaymentsPage user={user} />} />
             <Route path="/statement" element={<AccountStatementPage />} />
             <Route path="/report" element={<ReportPage user={user} />} />
+            <Route path="/parent-subscriptions" element={<ParentSubscriptionsPage user={user} />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </div>

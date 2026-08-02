@@ -40,3 +40,9 @@ export const getStatement = (studentId, term, year) =>
   api(`/api/bazar-pay/statement/${studentId}?term=${term}&year=${year}`);
 export const getReport = (schoolId, term, year) =>
   api(`/api/bazar-pay/report?school_id=${schoolId}&term=${term}&year=${year}`);
+
+export const getParentSubscriptions = (schoolId, term, year) =>
+  api(`/api/bazar-pay/parent-subscriptions?school_id=${schoolId}&term=${term}&year=${year}`);
+
+export const payParentSubscription = (data) =>
+  api('/api/bazar-pay/pay-parent-subscription', { method: 'POST', body: JSON.stringify(data) });

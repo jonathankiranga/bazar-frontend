@@ -6,6 +6,7 @@ const tabs = [
   { label: 'Pay Now', icon: '💳', path: '/record-payment' },
   { label: 'Balances', icon: '💰', path: '/balances' },
   { label: 'Payments', icon: '📋', path: '/payments' },
+  { label: 'Parents', icon: '👨‍👩‍👧', path: '/parent-subscriptions' },
   { label: 'Report', icon: '📈', path: '/report' },
 ];
 
