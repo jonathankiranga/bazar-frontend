@@ -44,5 +44,8 @@ export const getReport = (schoolId, term, year) =>
 export const getParentSubscriptions = (schoolId, term, year) =>
   api(`/api/bazar-pay/parent-subscriptions?school_id=${schoolId}&term=${term}&year=${year}`);
 
-export const payParentSubscription = (data) =>
-  api('/api/bazar-pay/pay-parent-subscription', { method: 'POST', body: JSON.stringify(data) });
+export const payBulkSubscriptions = (data) =>
+  api('/api/bazar-pay/pay-bulk-subscriptions', { method: 'POST', body: JSON.stringify(data) });
+
+export const paySelectedSubscriptions = (data) =>
+  api('/api/bazar-pay/pay-selected-subscriptions', { method: 'POST', body: JSON.stringify(data) });

@@ -68,3 +68,10 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f5f5f5; colo
 /* Small button */
 .btn-small { padding: 4px 10px; font-size: 12px; border: none; border-radius: 4px; cursor: pointer; }
 .btn-danger { background: #d32f2f; color: #fff; }
+.btn-small:disabled { opacity: 0.5; cursor: default; }
+
+/* Unpaid parent subscription row */
+.table tr.unpaid-row { background: #fff8f8; }
+
+/* Cashback candidate: school fees paid, premium not active */
+.table tr.cashback-row { background: #fff8e1; }
