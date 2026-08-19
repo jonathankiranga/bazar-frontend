@@ -1,26 +1,20 @@
-import { useState, useEffect } from 'react';
-import { getSchools, recordPayment } from '../utils/api';
+import { useState } from 'react';
+import { recordPayment } from '../utils/api';
 
 export default function RecordPaymentPage({ user }) {
   const schoolId = user?.school_id;
-  const [schools, setSchools] = useState([]);
-  const [selectedSchool, setSelectedSchool] = useState(schoolId || '');
   const [form, setForm] = useState({ student_id: '', amount: '', payment_method: 'Cash', notes: '', term: 'Term 1', academic_year: new Date().getFullYear() });
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
 
-  useEffect(() => {
-    getSchools().then(setSchools).catch(console.error);
-  }, []);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedSchool) return alert('Select a school');
+    if (!schoolId) return alert('School not found for this account');
     setSaving(true);
     setMsg('');
     try {
-      const resp = await recordPayment({ ...form, school_id: parseInt(selectedSchool), amount: parseFloat(form.amount) });
-      setMsg(`Payment recorded! Ref: ${resp.reference}`);
+      const resp = await recordPayment({ ...form, school_id: schoolId, amount: parseFloat(form.amount), recorded_by: user?.email || user?.phone || 'BAZAR' });
+      setMsg(`Payment recorded! Ref: ${resp.transaction_reference}`);
       setForm({ ...form, student_id: '', amount: '', notes: '' });
     } catch (err) {
       setMsg(err.message);
@@ -33,12 +27,6 @@ export default function RecordPaymentPage({ user }) {
     <div className="page">
       <h2>Record Payment</h2>
       <form className="pay-form" onSubmit={handleSubmit}>
-        {!schoolId && (
-          <select value={selectedSchool} onChange={e => setSelectedSchool(e.target.value)} required>
-            <option value="">Select School</option>
-            {schools.map(s => <option key={s.school_id} value={s.school_id}>{s.name}</option>)}
-          </select>
-        )}
         <input type="text" placeholder="Student ID" value={form.student_id} onChange={e => setForm({ ...form, student_id: e.target.value })} required />
         <input type="number" step="0.01" placeholder="Amount (KSh)" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} required />
         <select value={form.payment_method} onChange={e => setForm({ ...form, payment_method: e.target.value })}>

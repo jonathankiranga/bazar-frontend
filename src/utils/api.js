@@ -19,8 +19,11 @@ async function api(url, options = {}) {
   return data;
 }
 
-export const login = (email, password) =>
-  api('/api/school-head/login', { method: 'POST', body: JSON.stringify({ email, password }) });
+export const requestOtp = (phone, email) =>
+  api('/api/teachers/request-otp', { method: 'POST', body: JSON.stringify({ phone, email }) });
+
+export const verifyOtp = (session_id, code) =>
+  api('/api/teachers/verify-otp', { method: 'POST', body: JSON.stringify({ session_id, code }) });
 
 export const getSchools = () => api('/api/schools');
 export const getFeeStructures = (schoolId) => api(`/api/bazar-pay/fee-structures/${schoolId}`);
