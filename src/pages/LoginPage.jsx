@@ -1,38 +1,46 @@
-import { useState } from 'react';
-import { requestOtp, verifyOtp } from '../utils/api';
+import React, { useState } from 'react';
+import OTPInput from '../components/OTPInput.jsx';
+import { requestOtp, verifyOtp } from '../utils/api.js';
 
 export default function LoginPage({ onLogin }) {
-  const [step, setStep] = useState(1);
-  const [contact, setContact] = useState('');
-  const [code, setCode] = useState('');
-  const [sessionId, setSessionId] = useState('');
+  const [step, setStep] = useState('credential');
+  const [credential, setCredential] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [sessionId, setSessionId] = useState('');
 
-  const handleRequest = async (e) => {
+  async function handleRequestOtp(e) {
     e.preventDefault();
     setLoading(true);
     setError('');
     try {
-      const phone = /^\d+$/.test(contact.trim()) ? contact.trim() : '';
-      const email = phone ? '' : contact.trim();
-      if (!phone && !email.includes('@')) throw new Error('Enter a phone number or email');
-      const data = await requestOtp(phone, email);
+      const isEmail = credential.includes('@');
+      const data = await requestOtp(
+        isEmail ? undefined : credential,
+        isEmail ? credential : undefined
+      );
       setSessionId(data.session_id);
-      setStep(2);
+      setStep('otp');
     } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+      console.error('OTP request failed:', {
+        status: err.response?.status,
+        data: err.response?.data,
+        message: err.message
+      });
+      const errorMsg = err.response?.data?.error ||
+        (err.response?.status === 404 ? 'User not found' :
+          err.response?.status === 400 ? 'Invalid email format' :
+            err.message || 'Failed to send OTP. Check your email or phone.');
+      setError(errorMsg);
     }
-  };
+    setLoading(false);
+  }
 
-  const handleVerify = async (e) => {
-    e.preventDefault();
+  async function handleVerify(code) {
     setLoading(true);
     setError('');
     try {
-      const data = await verifyOtp(sessionId, code.trim());
+      const data = await verifyOtp(sessionId, code);
       if (data.role !== 'bursar' && data.role !== 'head') {
         throw new Error('Only a bursar or school head can use Bazar Pay');
       }
@@ -40,40 +48,106 @@ export default function LoginPage({ onLogin }) {
         teacher_id: data.teacher_id,
         school_id: data.school_id,
         role: data.role,
-        email: contact.includes('@') ? contact.trim() : '',
-        phone: /^\d+$/.test(contact.trim()) ? contact.trim() : '',
+        email: credential.includes('@') ? credential : '',
+        phone: /^\d+$/.test(credential) ? credential : '',
       };
-      sessionStorage.setItem('token', data.session_id);
-      sessionStorage.setItem('user', JSON.stringify(user));
+      sessionStorage.setItem('session_id', data.session_id);
+      sessionStorage.setItem('teacher_id', data.teacher_id);
+      sessionStorage.setItem('school_id', data.school_id);
+      sessionStorage.setItem('role', data.role || 'teacher');
       onLogin(user);
     } catch (err) {
-      setError(err.message);
-      setCode('');
-    } finally {
-      setLoading(false);
+      setError(err.message || err.response?.data?.error || 'Invalid or expired code');
     }
-  };
+    setLoading(false);
+  }
 
   return (
-    <div className="login-page">
-      <div className="login-card">
-        <h1>Bazar Pay</h1>
-        <p className="login-subtitle">School Fee Management</p>
-        {step === 1 ? (
-          <form onSubmit={handleRequest}>
-            <input type="text" placeholder="Phone (254...) or email" value={contact} onChange={e => setContact(e.target.value)} required />
-            {error && <p className="login-error">{error}</p>}
-            <button type="submit" disabled={loading}>{loading ? 'Sending code…' : 'Send OTP'}</button>
-          </form>
-        ) : (
-          <form onSubmit={handleVerify}>
-            <input type="text" inputMode="numeric" placeholder="Enter OTP code" value={code} onChange={e => setCode(e.target.value)} required />
-            {error && <p className="login-error">{error}</p>}
-            <button type="submit" disabled={loading}>{loading ? 'Signing in…' : 'Sign In'}</button>
-            <button type="button" className="login-back" onClick={() => { setStep(1); setError(''); setCode(''); }}>
-              ← Back
-            </button>
-          </form>
+    <div style={{
+      minHeight: '100vh',
+      backgroundImage: 'url(https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=800&q=80)',
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '0 24px'
+    }}>
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 0 }} />
+
+      <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 400 }}>
+        <div className="text-center mb-6">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl mb-4" style={{ backgroundColor: '#7B4F9B' }}>
+            <span className="text-2xl font-bold text-white">B</span>
+          </div>
+          <h1 className="text-2xl font-bold text-white">Bazar Pay</h1>
+          <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.7)' }}>School Fee Management</p>
+        </div>
+
+        <div className="mb-5 px-1 space-y-3 text-center">
+          <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.95)' }}>
+            Secure school fee collection with M-Pesa integration. Track payments, generate statements, and manage parent subscriptions.
+          </p>
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            {['M-Pesa Integration', 'Instant Receipts', 'Parent Portal', 'Real-time Reports'].map(f => (
+              <div key={f} className="flex items-center gap-1.5 px-3 py-2 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.12)' }}>
+                <span style={{ color: '#81C784' }}>[OK]</span>
+                <span style={{ color: 'rgba(255,255,255,0.85)' }}>{f}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-card p-6 shadow-xl">
+          {step === 'credential' && (
+            <form onSubmit={handleRequestOtp}>
+              <label className="block text-sm font-medium mb-1.5" style={{ color: '#555' }}>
+                Phone or Email
+              </label>
+              <input
+                type="text"
+                placeholder="254712345678 or you@email.com"
+                value={credential}
+                onChange={e => setCredential(e.target.value)}
+                className="input-field mb-4"
+                autoFocus
+                autoComplete="email tel"
+                required
+              />
+              <button type="submit" disabled={loading} className="btn-primary">
+                {loading ? 'Sending OTP...' : 'Continue'}
+              </button>
+              <p className="text-xs text-center mt-3" style={{ color: '#aaa' }}>
+                Your school is linked to your account automatically
+              </p>
+            </form>
+          )}
+
+          {step === 'otp' && (
+            <div>
+              <p className="text-sm mb-1 text-center" style={{ color: '#666' }}>
+                Enter the code sent to
+              </p>
+              <p className="text-base font-semibold mb-5 text-center" style={{ color: '#7B4F9B' }}>
+                {credential}
+              </p>
+              <OTPInput onComplete={handleVerify} />
+              <button
+                onClick={() => { setStep('credential'); setError(''); }}
+                className="w-full mt-3 text-center text-sm"
+                style={{ color: '#888' }}
+              >
+                &lt; Use a different phone or email
+              </button>
+            </div>
+          )}
+        </div>
+
+        {error && (
+          <div className="mt-3 p-3 rounded-lg text-sm text-center" style={{ backgroundColor: '#FFEBEE', color: '#C62828' }}>
+            {error}
+          </div>
         )}
       </div>
     </div>

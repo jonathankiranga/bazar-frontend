@@ -50,6 +50,12 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f5f5f5; colo
 .filters { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
 .filters select, .filters input { padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
 
+/* Filter bar for Record Payment / Student Selector */
+.filter-bar { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; background: #fff; padding: 12px; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+.filter-bar select { padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; min-width: 140px; }
+.filter-bar .select-sm { flex: 0 0 auto; }
+.filter-bar .search-input { flex: 1; min-width: 200px; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+
 /* Table */
 .table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
 .table th { background: #1a1a6c; color: #fff; padding: 10px 8px; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -75,3 +81,45 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f5f5f5; colo
 
 /* Cashback candidate: school fees paid, premium not active */
 .table tr.cashback-row { background: #fff8e1; }
+
+/* Modal */
+.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 100; }
+.modal { background: #fff; border-radius: 12px; width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; box-shadow: 0 8px 32px rgba(0,0,0,0.15); animation: modalIn 0.2s ease; }
+@keyframes modalIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+.modal-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid #eee; }
+.modal-header h3 { font-size: 18px; color: #1a1a6c; margin: 0; }
+.modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: #888; padding: 4px; line-height: 1; }
+.modal-close:hover { color: #333; }
+.modal-body { padding: 20px; }
+.student-summary { padding: 12px 16px; background: #f5f0ff; border-radius: 8px; margin-bottom: 20px; }
+.student-summary strong { display: block; font-size: 16px; color: #1a1a6c; margin-bottom: 4px; }
+.student-meta { font-size: 12px; color: #888; margin-bottom: 8px; }
+.balance-due { font-size: 15px; color: #c62828; }
+.balance-due strong { font-size: 18px; }
+
+/* Form */
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; font-size: 13px; font-weight: 500; color: #444; margin-bottom: 6px; }
+.form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; font-family: inherit; }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #1a1a6c; box-shadow: 0 0 0 3px rgba(26,26,108,0.1); }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-group textarea { resize: vertical; min-height: 60px; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; padding-top: 16px; border-top: 1px solid #eee; }
+.btn-primary, .btn-secondary { padding: 10px 20px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+.btn-primary { background: #1a1a6c; color: #fff; }
+.btn-secondary { background: #f0f0f0; color: #444; }
+.btn-primary:disabled, .btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; }
+.form-msg { padding: 10px 12px; border-radius: 6px; font-size: 13px; text-align: center; margin-bottom: 16px; }
+.form-msg.success { background: #e8f5e9; color: #2e7d32; }
+.form-msg.error { background: #fdeaea; color: #c62828; }
+
+/* Table enhancements */
+.table tbody tr:hover { background: #fafafa; cursor: pointer; }
+.student-name { font-weight: 500; color: #1a1a6c; }
+.currency { font-family: monospace; font-size: 13px; }
+.currency.paid { color: #2e7d32; }
+.currency.balance { color: #c62828; font-weight: 600; }
+.currency.balance:contains("Cleared") { color: #2e7d32; }
+.action-btn { color: #1a1a6c; font-weight: 600; font-size: 12px; white-space: nowrap; }
+
+.table-wrap { background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }

@@ -1,54 +1,107 @@
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+import axios from 'axios';
 
-function getToken() {
-  return sessionStorage.getItem('token');
-}
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || 'https://sms-backend-r0tn.onrender.com',
+  timeout: 60000,
+  headers: { 'Content-Type': 'application/json' }
+});
 
-function authHeaders() {
-  const token = getToken();
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
+// Attach the OTP session token to every request (bazar endpoints require it)
+api.interceptors.request.use(config => {
+  const token = sessionStorage.getItem('session_id');
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
 
-async function api(url, options = {}) {
-  const resp = await fetch(`${API_BASE}${url}`, {
-    ...options,
-    headers: { 'Content-Type': 'application/json', ...authHeaders(), ...options.headers },
-  });
-  const data = await resp.json();
-  if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`);
+// Auth
+export async function requestOtp(phone, email) {
+  const { data } = await api.post('/api/teachers/request-otp', { phone, email });
   return data;
 }
 
-export const requestOtp = (phone, email) =>
-  api('/api/teachers/request-otp', { method: 'POST', body: JSON.stringify({ phone, email }) });
+export async function verifyOtp(session_id, code) {
+  const { data } = await api.post('/api/teachers/verify-otp', { session_id, code });
+  return data;
+}
 
-export const verifyOtp = (session_id, code) =>
-  api('/api/teachers/verify-otp', { method: 'POST', body: JSON.stringify({ session_id, code }) });
+export async function getSchools() {
+  const { data } = await api.get('/api/schools');
+  return data;
+}
 
-export const getSchools = () => api('/api/schools');
-export const getFeeStructures = (schoolId) => api(`/api/bazar-pay/fee-structures/${schoolId}`);
-export const assignFees = (data) => api('/api/fees/assign', { method: 'POST', body: JSON.stringify(data) });
-export const unassignFees = (data) => api('/api/fees/unassign', { method: 'POST', body: JSON.stringify(data) });
+// Fee structures
+export async function getFeeStructures(schoolId) {
+  const { data } = await api.get(`/api/bazar-pay/fee-structures/${schoolId}`);
+  return data;
+}
 
-export const getDashboard = (schoolId) => api(`/api/bazar-pay/dashboard?school_id=${schoolId}`);
-export const recordPayment = (data) => api('/api/bazar-pay/cash-payment', { method: 'POST', body: JSON.stringify(data) });
-export const reversePayment = (data) => api('/api/bazar-pay/reverse-payment', { method: 'POST', body: JSON.stringify(data) });
-export const getPayments = (schoolId, params = {}) => {
-  const q = new URLSearchParams({ school_id: schoolId, ...params }).toString();
-  return api(`/api/bazar-pay/payments?${q}`);
-};
-export const getStudentBalances = (schoolId, term, year) =>
-  api(`/api/bazar-pay/student-balances?school_id=${schoolId}&term=${term}&year=${year}`);
-export const getStatement = (studentId, term, year) =>
-  api(`/api/bazar-pay/statement/${studentId}?term=${term}&year=${year}`);
-export const getReport = (schoolId, term, year) =>
-  api(`/api/bazar-pay/report?school_id=${schoolId}&term=${term}&year=${year}`);
+export async function assignFees(data) {
+  const { data: res } = await api.post('/api/fees/assign', data);
+  return res;
+}
 
-export const getParentSubscriptions = (schoolId, term, year) =>
-  api(`/api/bazar-pay/parent-subscriptions?school_id=${schoolId}&term=${term}&year=${year}`);
+export async function unassignFees(data) {
+  const { data: res } = await api.post('/api/fees/unassign', data);
+  return res;
+}
 
-export const payBulkSubscriptions = (data) =>
-  api('/api/bazar-pay/pay-bulk-subscriptions', { method: 'POST', body: JSON.stringify(data) });
+// Dashboard
+export async function getDashboard(schoolId) {
+  const { data } = await api.get('/api/bazar-pay/dashboard', { params: { school_id: schoolId } });
+  return data;
+}
 
-export const paySelectedSubscriptions = (data) =>
-  api('/api/bazar-pay/pay-selected-subscriptions', { method: 'POST', body: JSON.stringify(data) });
+// Payments
+export async function recordPayment(data) {
+  const { data: res } = await api.post('/api/bazar-pay/cash-payment', data);
+  return res;
+}
+
+export async function reversePayment(data) {
+  const { data: res } = await api.post('/api/bazar-pay/reverse-payment', data);
+  return res;
+}
+
+export async function getPayments(schoolId, params = {}) {
+  const { data } = await api.get('/api/bazar-pay/payments', { params: { school_id: schoolId, ...params } });
+  return data;
+}
+
+export async function getStudentBalances(schoolId, term, year, classId) {
+  const { data } = await api.get('/api/bazar-pay/student-balances', {
+    params: { school_id: schoolId, term, year, class_id: classId }
+  });
+  return data;
+}
+
+export async function getStatement(studentId, term, year) {
+  const { data } = await api.get(`/api/bazar-pay/statement/${studentId}`, { params: { term, year } });
+  return data;
+}
+
+export async function getReport(schoolId, term, year) {
+  const { data } = await api.get('/api/bazar-pay/report', { params: { school_id: schoolId, term, year } });
+  return data;
+}
+
+export async function getParentSubscriptions(schoolId, term, year) {
+  const { data } = await api.get('/api/bazar-pay/parent-subscriptions', { params: { school_id: schoolId, term, year } });
+  return data;
+}
+
+export async function payBulkSubscriptions(data) {
+  const { data: res } = await api.post('/api/bazar-pay/pay-bulk-subscriptions', data);
+  return res;
+}
+
+export async function paySelectedSubscriptions(data) {
+  const { data: res } = await api.post('/api/bazar-pay/pay-selected-subscriptions', data);
+  return res;
+}
+
+export async function getClasses(schoolId) {
+  const { data } = await api.get('/api/fees/classes', { params: { school_id: schoolId } });
+  return data;
+}
+
+export default api;
