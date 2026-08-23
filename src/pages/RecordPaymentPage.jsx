@@ -1,12 +1,12 @@
-import { useState, useEffect, useMemo } from 'react';
-import { getStudentBalances, recordPayment, getClasses } from '../utils/api';
+import { useState } from 'react';
+import { recordPayment } from '../utils/api';
 import StudentSelector from '../components/StudentSelector';
 
 function formatCurrency(val) {
   return (val || 0).toLocaleString();
 }
 
-function PaymentModal({ student, schoolId, term, year, user, onClose, onSaved }) {
+function PaymentModal({ student, schoolId, term, year, onClose, onSaved }) {
   const [paymentForm, setPaymentForm] = useState({
     amount: '',
     payment_method: 'Cash',
@@ -14,10 +14,6 @@ function PaymentModal({ student, schoolId, term, year, user, onClose, onSaved })
   });
   const [saving, setSaving] = useState(false);
   const [modalError, setModalError] = useState('');
-
-  function formatCurrency(val) {
-    return (val || 0).toLocaleString();
-  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -28,7 +24,7 @@ function PaymentModal({ student, schoolId, term, year, user, onClose, onSaved })
     setSaving(true);
     setModalError('');
     try {
-      const resp = await recordPayment({
+      await recordPayment({
         school_id: schoolId,
         student_id: student.student_id,
         amount: parseFloat(paymentForm.amount),
@@ -41,7 +37,7 @@ function PaymentModal({ student, schoolId, term, year, user, onClose, onSaved })
       if (onSaved) onSaved();
       onClose();
     } catch (err) {
-      setModalError(err.message);
+      setModalError(err.response?.data?.error || err.message);
     } finally {
       setSaving(false);
     }
@@ -52,7 +48,7 @@ function PaymentModal({ student, schoolId, term, year, user, onClose, onSaved })
       <div className="bg-white rounded-card shadow-xl p-6 w-full max-w-lg max-h-[80vh] overflow-auto">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold" style={{ color: '#333' }}>Record Payment</h2>
-          <button onClick={onClose} className="text-sm" style={{ color: '#888' }}>✕</button>
+          <button onClick={onClose} className="text-sm" style={{ color: '#888' }}>X</button>
         </div>
         <div className="student-summary">
           <strong>{student.full_name}</strong>
@@ -61,7 +57,7 @@ function PaymentModal({ student, schoolId, term, year, user, onClose, onSaved })
             Balance Due: <strong>KSh {formatCurrency(student.balance)}</strong>
           </div>
         </div>
-        <form onSubmit={async (e) => { e.preventDefault(); }}>
+        <form onSubmit={handleSubmit}>
           {modalError && <p className="form-msg error">{modalError}</p>}
           <div className="form-group">
             <label>Amount (KSh) *</label>
@@ -69,8 +65,8 @@ function PaymentModal({ student, schoolId, term, year, user, onClose, onSaved })
               type="number"
               step="0.01"
               placeholder="Enter amount"
-              value={form.amount}
-              onChange={e => setForm({ ...form, amount: e.target.value })}
+              value={paymentForm.amount}
+              onChange={e => setPaymentForm({ ...paymentForm, amount: e.target.value })}
               required
               autoFocus
             />
@@ -87,35 +83,18 @@ function PaymentModal({ student, schoolId, term, year, user, onClose, onSaved })
               <option value="M-Pesa">M-Pesa</option>
             </select>
           </div>
-          <div className="form-row">
-            <div className="form-group">
-              <label>Term</label>
-              <select value={form.term} onChange={e => setForm({ ...form, term: e.target.value })}>
-                <option value="Term 1">Term 1</option>
-                <option value="Term 2">Term 2</option>
-                <option value="Term 3">Term 3</option>
-              </select>
-            </div>
-            <div className="form-group">
-              <label>Year</label>
-              <input
-                type="number"
-                value={form.year}
-                onChange={e => setForm({ ...form, year: parseInt(e.target.value) })}
-                min={2020}
-                max={2030}
-              />
-            </div>
-          </div>
           <div className="form-group">
             <label>Notes (optional)</label>
             <textarea
               value={paymentForm.notes}
-              onChange={e => setForm({ ...paymentForm, notes: e.target.value })}
+              onChange={e => setPaymentForm({ ...paymentForm, notes: e.target.value })}
               rows={2}
               placeholder="Reference, cheque no., etc."
             />
           </div>
+          <p className="text-xs mb-3" style={{ color: '#888' }}>
+            For {term}, {year}
+          </p>
           <div className="modal-actions">
             <button type="button" className="btn-secondary" onClick={onClose} disabled={saving}>
               Cancel
@@ -132,62 +111,11 @@ function PaymentModal({ student, schoolId, term, year, user, onClose, onSaved })
 
 export default function RecordPaymentPage({ user }) {
   const schoolId = user?.school_id;
-  const [classes, setClasses] = useState([]);
-  const [students, setStudents] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [classFilter, setClassFilter] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [term, setTerm] = useState('Term 1');
-  const [year, setYear] = useState(new Date().getFullYear());
-  const [selectedStudent, setSelectedStudent] = useState(null);
-  const [msg, setMsg] = useState('');
-
-  useEffect(() => {
-    if (!schoolId) return;
-    getClasses(schoolId).then(r => setClasses(r.classes || [])).catch(console.error);
-  }, [schoolId]);
-
-  const loadStudents = async () => {
-    if (!schoolId) return;
-    setLoading(true);
-    try {
-      const r = await getStudentBalances(schoolId, term, year, classFilter || undefined);
-      setStudents(r.students || []);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => { loadStudents(); }, [schoolId, term, year, classFilter]);
-
-  const filteredStudents = useMemo(() => {
-    if (!searchQuery.trim()) return students;
-    const q = searchQuery.toLowerCase();
-    return students.filter(s => 
-      s.full_name.toLowerCase().includes(q) || 
-      s.student_id.toLowerCase().includes(q)
-    );
-  }, [students, searchQuery]);
-
-  const [showModal, setShowModal] = useState(false);
+  const [term] = useState('Term 1');
+  const [year] = useState(new Date().getFullYear());
   const [modalStudent, setModalStudent] = useState(null);
-
-  const openModal = (student) => {
-    setModalStudent(student);
-    setShowModal(true);
-  };
-
-  const closeModal = () => {
-    setShowModal(false);
-    setModalStudent(null);
-  };
-
-  const handleStudentSelect = (student) => {
-    setModalStudent(student);
-    setShowModal(true);
-  };
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [msg, setMsg] = useState('');
 
   if (!schoolId) return <div className="page"><p>School not found for this account</p></div>;
 
@@ -195,75 +123,30 @@ export default function RecordPaymentPage({ user }) {
     <div className="page">
       <h2>Record Payment</h2>
 
-      <div className="filter-bar">
-        <select value={term} onChange={e => setTerm(e.target.value)} className="select-sm">
-          <option value="Term 1">Term 1</option>
-          <option value="Term 2">Term 2</option>
-          <option value="Term 3">Term 3</option>
-        </select>
-        <select value={year} onChange={e => setYear(e.target.value)} className="select-sm">
-          {[2024, 2025, 2026, 2027].map(y => <option key={y} value={y}>{y}</option>)}
-        </select>
-        <select value={classFilter} onChange={e => setClassFilter(e.target.value)} className="select-sm">
-          <option value="">All Classes</option>
-          {classes.map(c => <option key={c.class_id} value={c.class_id}>{c.class_name}</option>)}
-        </select>
-        <input
-          type="text"
-          placeholder="Search student name..."
-          value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
-          className="search-input"
-        />
-      </div>
-
       {msg && <p className="form-msg success">{msg}</p>}
 
-      <div className="table-wrap">
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>Class</th>
-              <th>Student</th>
-              <th>Due</th>
-              <th>Paid</th>
-              <th>Balance</th>
-              <th style={{ width: 60 }}>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr><td colSpan={6} className="text-center">Loading...</td></tr>
-            ) : filteredStudents.length === 0 ? (
-              <tr><td colSpan={6} className="text-center">No students found</td></tr>
-            ) : (
-              filteredStudents.map(s => (
-                <tr key={s.student_id} onClick={() => openModal(s)} style={{ cursor: 'pointer' }}>
-                  <td>{s.class_name || '-'}</td>
-                  <td className="student-name">{s.full_name}</td>
-                  <td className="currency">KSh {formatCurrency(s.total_due)}</td>
-                  <td className="currency paid">KSh {formatCurrency(s.total_paid)}</td>
-                  <td className="currency balance">{s.balance > 0 ? 'KSh ' + formatCurrency(s.balance) : 'Cleared'}</td>
-                  <td className="action-btn">Select</td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+      <StudentSelector
+        key={refreshKey}
+        schoolId={schoolId}
+        initialTerm={term}
+        initialYear={year}
+        onSelect={(student) => setModalStudent(student)}
+      />
 
-      {showModal && modalStudent && (
+      {modalStudent && (
         <PaymentModal
           student={modalStudent}
           schoolId={schoolId}
           term={term}
           year={year}
-          onClose={() => setShowModal(false)}
-          onSaved={() => { loadStudents(); setMsg('Payment recorded!'); }}
+          onClose={() => setModalStudent(null)}
+          onSaved={() => {
+            setRefreshKey(k => k + 1);
+            setMsg('Payment recorded successfully!');
+            setTimeout(() => setMsg(''), 4000);
+          }}
         />
       )}
-
-      {msg && <p className="form-msg success">{msg}</p>}
     </div>
   );
 }

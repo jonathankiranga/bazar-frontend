@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import LoginPage from './pages/LoginPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
@@ -11,21 +11,39 @@ import ParentSubscriptionsPage from './pages/ParentSubscriptionsPage.jsx';
 import BottomNav from './components/BottomNav.jsx';
 import './styles/app.css';
 
-function AppLayout() {
+function readUser() {
+  const blob = sessionStorage.getItem('user');
+  if (blob) {
+    try { return JSON.parse(blob); } catch (e) { /* ignore */ }
+  }
+  const sessionId = sessionStorage.getItem('session_id');
+  const schoolId = sessionStorage.getItem('school_id');
+  if (sessionId && schoolId) {
+    return {
+      session_id: sessionId,
+      teacher_id: sessionStorage.getItem('teacher_id'),
+      school_id: schoolId,
+      role: sessionStorage.getItem('role') || 'teacher',
+    };
+  }
+  return null;
+}
+
+function AppLayout({ user, onLogin }) {
   const location = useLocation();
   const hideNav = location.pathname === '/' || location.pathname.includes('/login');
   return (
     <>
       <Routes>
-        <Route path="/" element={<Navigate to="/login" replace />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/record-payment" element={<RecordPaymentPage />} />
-        <Route path="/balances" element={<StudentBalancesPage />} />
-        <Route path="/payments" element={<PaymentsPage />} />
-        <Route path="/statement" element={<AccountStatementPage />} />
-        <Route path="/report" element={<ReportPage />} />
-        <Route path="/parent-subscriptions" element={<ParentSubscriptionsPage />} />
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/login" element={<LoginPage onLogin={onLogin} />} />
+        <Route path="/dashboard" element={<DashboardPage user={user} />} />
+        <Route path="/record-payment" element={<RecordPaymentPage user={user} />} />
+        <Route path="/balances" element={<StudentBalancesPage user={user} />} />
+        <Route path="/payments" element={<PaymentsPage user={user} />} />
+        <Route path="/statement" element={<AccountStatementPage user={user} />} />
+        <Route path="/report" element={<ReportPage user={user} />} />
+        <Route path="/parent-subscriptions" element={<ParentSubscriptionsPage user={user} />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
       {!hideNav && <BottomNav />}
@@ -34,29 +52,41 @@ function AppLayout() {
 }
 
 export default function App() {
-  const [user, setUser] = useState(() => {
-    const u = sessionStorage.getItem('user');
-    return u ? JSON.parse(u) : null;
-  });
+  const [user, setUser] = useState(readUser);
 
   useEffect(() => {
-    const handler = () => {
-      const u = sessionStorage.getItem('user');
-      setUser(u ? JSON.parse(u) : null);
-    };
+    const handler = () => setUser(readUser());
     window.addEventListener('storage', handler);
-    return () => window.removeEventListener('storage', handler);
+    window.addEventListener('auth-changed', handler);
+    return () => {
+      window.removeEventListener('storage', handler);
+      window.removeEventListener('auth-changed', handler);
+    };
   }, []);
+
+  function handleLogin(u) {
+    setUser(u);
+    sessionStorage.setItem('user', JSON.stringify(u));
+    sessionStorage.setItem('session_id', u.session_id || '');
+    sessionStorage.setItem('teacher_id', u.teacher_id || '');
+    sessionStorage.setItem('school_id', u.school_id || '');
+    sessionStorage.setItem('role', u.role || 'teacher');
+    window.dispatchEvent(new Event('auth-changed'));
+  }
 
   if (!user) {
     return (
       <HashRouter>
         <Routes>
-          <Route path="*" element={<LoginPage onLogin={(u) => { setUser(u); sessionStorage.setItem('user', JSON.stringify(u)); }} />} />
+          <Route path="*" element={<LoginPage onLogin={handleLogin} />} />
         </Routes>
       </HashRouter>
     );
   }
 
-  return <AppLayout />;
+  return (
+    <HashRouter>
+      <AppLayout user={user} onLogin={handleLogin} />
+    </HashRouter>
+  );
 }
