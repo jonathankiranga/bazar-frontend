@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import LoginPage from './pages/LoginPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
 import RecordPaymentPage from './pages/RecordPaymentPage.jsx';
@@ -31,7 +31,7 @@ function readUser() {
 
 function AppLayout({ user, onLogin }) {
   const location = useLocation();
-  const hideNav = location.pathname === '/' || location.pathname.includes('/login');
+  const hideNav = location.pathname.includes('/login') || location.pathname === '/';
   return (
     <>
       <Routes>
@@ -65,28 +65,21 @@ export default function App() {
   }, []);
 
   function handleLogin(u) {
-    setUser(u);
     sessionStorage.setItem('user', JSON.stringify(u));
     sessionStorage.setItem('session_id', u.session_id || '');
     sessionStorage.setItem('teacher_id', u.teacher_id || '');
     sessionStorage.setItem('school_id', u.school_id || '');
     sessionStorage.setItem('role', u.role || 'teacher');
-    window.dispatchEvent(new Event('auth-changed'));
+    setUser(u);
   }
 
   if (!user) {
     return (
-      <HashRouter>
-        <Routes>
-          <Route path="*" element={<LoginPage onLogin={handleLogin} />} />
-        </Routes>
-      </HashRouter>
+      <Routes>
+        <Route path="*" element={<LoginPage onLogin={handleLogin} />} />
+      </Routes>
     );
   }
 
-  return (
-    <HashRouter>
-      <AppLayout user={user} onLogin={handleLogin} />
-    </HashRouter>
-  );
+  return <AppLayout user={user} onLogin={handleLogin} />;
 }
