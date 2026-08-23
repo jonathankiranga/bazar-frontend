@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { HashRouter } from 'react-router-dom';
 import App from './App.jsx';
 import './styles/app.css';
+import './App.css';
 
 function Root() {
   return (

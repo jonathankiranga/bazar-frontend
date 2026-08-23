@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'https://sms-backend-r0tn.onrender.com',
-  timeout: 60000,
+  timeout: 30000,
   headers: { 'Content-Type': 'application/json' }
 });
 
@@ -11,6 +11,19 @@ api.interceptors.request.use(config => {
   const token = sessionStorage.getItem('session_id');
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
+});
+
+// Retry GETs once on timeout/network errors (Render free tier cold starts can take ~60s)
+api.interceptors.response.use(undefined, async (error) => {
+  const config = error.config;
+  const isTimeout = error.code === 'ECONNABORTED' || error.message?.includes('timeout');
+  const isNetwork = error.code === 'ERR_NETWORK' || error.response == null;
+  if (config && config._retried !== true && config.method === 'get' && (isTimeout || isNetwork)) {
+    config._retried = true;
+    await new Promise(r => setTimeout(r, 5000));
+    return api.request(config);
+  }
+  return Promise.reject(error);
 });
 
 // Auth
