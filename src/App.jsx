@@ -12,10 +12,6 @@ import BottomNav from './components/BottomNav.jsx';
 import './styles/app.css';
 
 function readUser() {
-  const blob = sessionStorage.getItem('user');
-  if (blob) {
-    try { return JSON.parse(blob); } catch (e) { /* ignore */ }
-  }
   const sessionId = sessionStorage.getItem('session_id');
   const schoolId = sessionStorage.getItem('school_id');
   if (sessionId && schoolId) {
@@ -65,12 +61,13 @@ export default function App() {
   }, []);
 
   function handleLogin(u) {
-    sessionStorage.setItem('user', JSON.stringify(u));
-    sessionStorage.setItem('session_id', u.session_id || '');
+    const sessionId = u.session_id || sessionStorage.getItem('session_id') || '';
+    sessionStorage.setItem('user', JSON.stringify({ ...u, session_id: sessionId }));
+    sessionStorage.setItem('session_id', sessionId);
     sessionStorage.setItem('teacher_id', u.teacher_id || '');
     sessionStorage.setItem('school_id', u.school_id || '');
     sessionStorage.setItem('role', u.role || 'teacher');
-    setUser(u);
+    setUser(readUser());
   }
 
   if (!user) {

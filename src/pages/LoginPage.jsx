@@ -45,6 +45,7 @@ export default function LoginPage({ onLogin }) {
         throw new Error('Only a bursar or school head can use Bazar Pay');
       }
       const user = {
+        session_id: data.session_id,
         teacher_id: data.teacher_id,
         school_id: data.school_id,
         role: data.role,

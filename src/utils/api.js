@@ -13,9 +13,21 @@ api.interceptors.request.use(config => {
   return config;
 });
 
-// Retry GETs once on timeout/network errors (Render free tier cold starts can take ~60s)
+// Retry GETs once on timeout/network errors (Render free tier cold starts can take ~60s).
+// On 401 (expired/absent session) clear storage and bounce to login.
 api.interceptors.response.use(undefined, async (error) => {
   const config = error.config;
+  const url = config?.url || '';
+  const isAuthCall = url.includes('request-otp') || url.includes('verify-otp');
+
+  if (error.response?.status === 401 && !isAuthCall && !config._retriedAfter401) {
+    config._retriedAfter401 = true;
+    ['user', 'session_id', 'teacher_id', 'school_id', 'role', 'token'].forEach(k => sessionStorage.removeItem(k));
+    window.dispatchEvent(new Event('auth-changed'));
+    if (!window.location.hash.startsWith('#/login')) window.location.hash = '#/login';
+    return Promise.reject(error);
+  }
+
   const isTimeout = error.code === 'ECONNABORTED' || error.message?.includes('timeout');
   const isNetwork = error.code === 'ERR_NETWORK' || error.response == null;
   if (config && config._retried !== true && config.method === 'get' && (isTimeout || isNetwork)) {
