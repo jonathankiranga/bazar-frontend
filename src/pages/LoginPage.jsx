@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import OTPInput from '../components/OTPInput.jsx';
 import { requestOtp, verifyOtp } from '../utils/api.js';
 
@@ -8,6 +8,13 @@ export default function LoginPage({ onLogin }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [sessionId, setSessionId] = useState('');
+  const [resendIn, setResendIn] = useState(0);
+
+  useEffect(() => {
+    if (step !== 'otp' || resendIn <= 0) return;
+    const t = setTimeout(() => setResendIn(resendIn - 1), 1000);
+    return () => clearTimeout(t);
+  }, [step, resendIn]);
 
   async function handleRequestOtp(e) {
     e.preventDefault();
@@ -21,6 +28,8 @@ export default function LoginPage({ onLogin }) {
       );
       setSessionId(data.session_id);
       setStep('otp');
+      setResendIn(30);
+      setError('');
     } catch (err) {
       console.error('OTP request failed:', {
         status: err.response?.status,
@@ -133,7 +142,21 @@ export default function LoginPage({ onLogin }) {
               <p className="text-base font-semibold mb-5 text-center" style={{ color: '#7B4F9B' }}>
                 {credential}
               </p>
-              <OTPInput onComplete={handleVerify} />
+              <OTPInput onComplete={handleVerify} key={sessionId} />
+              {resendIn > 0 ? (
+                <p className="text-center text-sm mt-2" style={{ color: '#999' }}>
+                  Resend code in {resendIn}s
+                </p>
+              ) : (
+                <button
+                  onClick={handleRequestOtp}
+                  disabled={loading}
+                  className="w-full mt-2 text-center text-sm font-medium"
+                  style={{ color: '#7B4F9B' }}
+                >
+                  {loading ? 'Resending...' : "Didn't receive it? Resend code"}
+                </button>
+              )}
               <button
                 onClick={() => { setStep('credential'); setError(''); }}
                 className="w-full mt-3 text-center text-sm"
