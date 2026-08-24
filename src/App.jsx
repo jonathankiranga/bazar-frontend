@@ -32,7 +32,7 @@ function AppLayout({ user, onLogin }) {
     <>
       <Routes>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="/login" element={<LoginPage onLogin={onLogin} />} />
+        <Route path="/login" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<DashboardPage user={user} />} />
         <Route path="/record-payment" element={<RecordPaymentPage user={user} />} />
         <Route path="/balances" element={<StudentBalancesPage user={user} />} />

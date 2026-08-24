@@ -58,6 +58,7 @@ export default function LoginPage({ onLogin }) {
       sessionStorage.setItem('school_id', data.school_id);
       sessionStorage.setItem('role', data.role || 'teacher');
       onLogin(user);
+      window.location.hash = '#/dashboard';
     } catch (err) {
       setError(err.message || err.response?.data?.error || 'Invalid or expired code');
     }
